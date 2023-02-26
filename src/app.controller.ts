@@ -13,6 +13,7 @@ import {
 
 import { AppService } from './app.service';
 import { ReportType } from './data';
+import { CreateReportDto, UpdateReportDto } from './dtos/report.dto';
 
 @Controller('/report/:type')
 export class AppController {
@@ -40,7 +41,7 @@ export class AppController {
   @Post()
   createReport(
     @Param('type', new ParseEnumPipe(ReportType)) type: string,
-    @Body() body: { source: string; amount: number },
+    @Body() body: CreateReportDto,
   ) {
     const reportType: ReportType =
       type === 'income' ? ReportType.INCOME : ReportType.EXPENSE;
@@ -52,7 +53,7 @@ export class AppController {
   updateReport(
     @Param('type', new ParseEnumPipe(ReportType)) type: string,
     @Param('id', ParseUUIDPipe) id: string,
-    @Body() body: { source: string; amount: number },
+    @Body() body: UpdateReportDto,
   ) {
     const reportType: ReportType =
       type === 'income' ? ReportType.INCOME : ReportType.EXPENSE;
