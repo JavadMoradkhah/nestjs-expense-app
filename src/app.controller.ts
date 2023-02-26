@@ -8,14 +8,20 @@ import {
   Body,
   HttpCode,
 } from '@nestjs/common';
-import { v4 as uuid } from 'uuid';
-import { data, ReportType, Report } from './data';
+
+import { AppService } from './app.service';
+import { ReportType } from './data';
 
 @Controller('/report/:type')
 export class AppController {
+  constructor(private readonly appService: AppService) {}
+
   @Get()
   getAllReports(@Param('type') type: string) {
-    return data.report.filter((report) => report.type === type);
+    const reportType: ReportType =
+      type === 'income' ? ReportType.INCOME : ReportType.EXPENSE;
+
+    return this.appService.getAllReports(reportType);
   }
 
   @Get(':id')
@@ -23,9 +29,7 @@ export class AppController {
     const reportType: ReportType =
       type === 'income' ? ReportType.INCOME : ReportType.EXPENSE;
 
-    return data.report
-      .filter((report) => report.type === reportType)
-      .find((report) => report.id === id);
+    return this.appService.getReportById(reportType, id);
   }
 
   @Post()
@@ -33,18 +37,10 @@ export class AppController {
     @Param('type') type: string,
     @Body() body: { source: string; amount: number },
   ) {
-    const newReport: Report = {
-      id: uuid(),
-      source: body.source,
-      amount: body.amount,
-      type: type === 'income' ? ReportType.INCOME : ReportType.EXPENSE,
-      created_at: new Date(),
-      updated_at: new Date(),
-    };
+    const reportType: ReportType =
+      type === 'income' ? ReportType.INCOME : ReportType.EXPENSE;
 
-    data.report.push(newReport);
-
-    return newReport;
+    return this.appService.createReport(reportType, body);
   }
 
   @Put(':id')
@@ -56,15 +52,7 @@ export class AppController {
     const reportType: ReportType =
       type === 'income' ? ReportType.INCOME : ReportType.EXPENSE;
 
-    const report = data.report
-      .filter((report) => report.type === reportType)
-      .find((report) => report.id === id);
-
-    if (!report) return;
-
-    Object.assign(report, body);
-
-    return report;
+    return this.appService.updateReport(reportType, id, body);
   }
 
   @HttpCode(204)
@@ -73,11 +61,7 @@ export class AppController {
     const reportType: ReportType =
       type === 'income' ? ReportType.INCOME : ReportType.EXPENSE;
 
-    const reportIndex = data.report
-      .filter((report) => report.type === reportType)
-      .findIndex((report) => report.id === id);
-
-    data.report.splice(reportIndex, 1);
+    this.appService.deleteReport(reportType, id);
 
     return;
   }
